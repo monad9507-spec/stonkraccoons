@@ -50,7 +50,7 @@ function WalletSync() {
 }
 
 function Header({ go }) {
-  return <nav className="nav"><button className="brand" onClick={() => go("/")}>STONK<i>RACCOONS</i></button><div className="navlinks"><button onClick={() => go("/#collection")}>Collection</button><button onClick={() => go("/#rarities")}>Rarities</button><button onClick={() => go("/#epochs")}>Epochs</button><button onClick={() => go("/docs/")}>Docs</button><button onClick={() => go("/mint/")}>Mint</button><a href={X_URL} target="_blank" rel="noreferrer">X ↗</a><a href={OPENSEA_URL} target="_blank" rel="noreferrer">OpenSea ↗</a></div><WalletButton /></nav>;
+  return <nav className="nav"><button className="brand" onClick={() => go("/")}>STONK<i>RACCOONS</i></button><div className="navlinks"><button onClick={() => go("/collection/")}>Collection</button><button onClick={() => go("/#rarities")}>Rarities</button><button onClick={() => go("/#epochs")}>Epochs</button><button onClick={() => go("/docs/")}>Docs</button><button onClick={() => go("/mint/")}>Mint</button><a href={X_URL} target="_blank" rel="noreferrer">X ↗</a><a href={OPENSEA_URL} target="_blank" rel="noreferrer">OpenSea ↗</a></div><WalletButton /></nav>;
 }
 
 const rarityCards = [
@@ -116,6 +116,41 @@ function Mint({ go }) {
   return <><Header go={go}/><main className="mintscreen"><section className="art"><img src="/assets/raccoon-headset.svg" alt="StonkRaccoons"/></section><section className="panel"><div className="eyebrow">Mint terminal</div><h1>CLAIM YOUR<br/>RACCOON.</h1><div className="status"><i/> {isConnected ? `CONNECTED · ${short(address)} · ${epochTitle}` : epochTitle}</div><div className="box"><div className="topline"><span>SUPPLY</span><b>{collection.loading ? "LOADING…" : `${collection.total} / 5,000 MINTED`}</b></div><div className="quantity"><span>QUANTITY</span><div className="qty"><button disabled={qty <= 1} onClick={() => setQty(Math.max(1, qty - 1))}>−</button><b>{qty}</b><button disabled={maxQty < 1 || qty >= maxQty} onClick={() => setQty(Math.min(Math.max(1, maxQty), qty + 1))}>+</button></div></div><div className="total"><span>PRICE <b>{priceLabel(collection.price * BigInt(qty))}</b></span><span>YOUR WALLET CAP LEFT <b>{walletRemaining.toString()}</b></span></div><div className="reward"><span>YOU RECEIVE</span><b>{(qty * 5000).toLocaleString()} $RACC</b></div><button className="mainbtn" onClick={action}>{isConnected ? "MINT A RACCOON" : "CONNECT WALLET"}</button>{status && <p className="notice">{status}</p>}</div><div className="epochline">{Array.from({length:10},(_,i)=><i key={i} className={Number(collection.epoch) === i ? "active" : ""}/>)}</div><p className="notice">The site reads the live epoch, price, supply and wallet cap from the contract.</p></section></main></>;
 }
 
+function Collection({ go }) {
+  const [page, setPage] = useState(0);
+  const [state, setState] = useState({ total: 0, cards: [], loading: configured, error: "" });
+  const perPage = 15;
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!configured) return;
+      setState((previous) => ({ ...previous, loading: true, error: "" }));
+      try {
+        const read = new JsonRpcProvider(ARC.rpcUrls.default.http[0]);
+        const nft = new Contract(NFT_CONTRACT, NFT_ABI, read);
+        const total = Number(await nft.totalMinted());
+        const start = page * perPage + 1;
+        const ids = Array.from({ length: Math.max(0, Math.min(perPage, total - start + 1)) }, (_, index) => start + index);
+        const cards = (await Promise.all(ids.map(async (tokenId) => {
+          try {
+            const uri = await nft.tokenURI(tokenId);
+            return { tokenId, uri: uri.trim().startsWith("<svg") ? `data:image/svg+xml;utf8,${encodeURIComponent(uri)}` : uri };
+          } catch { return null; }
+        }))).filter(Boolean);
+        if (active) setState({ total, cards, loading: false, error: cards.length ? "" : "NFT metadata is not available yet." });
+      } catch {
+        if (active) setState({ total: 0, cards: [], loading: false, error: "Could not load the collection right now." });
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [page]);
+
+  const lastPage = Math.max(0, Math.ceil(state.total / perPage) - 1);
+  return <><Header go={go}/><main className="collectionscreen"><div className="collectionintro"><div><div className="eyebrow">Live on-chain gallery</div><h1>THE<br/>COLLECTION.</h1></div><div><p className="copy">Every minted StonkRaccoon appears here directly from the Arc contract. No IPFS, no hidden metadata.</p><div className="collectionstat"><b>{configured ? state.total.toLocaleString() : "—"}</b><span> / 5,000 MINTED</span></div></div></div>{!configured ? <div className="collectionempty"><b>COLLECTION ADDRESS NOT SET</b><p>Paste the deployed NFT address into <code>NFT_CONTRACT</code> in <code>src/config.js</code>. The gallery will then load live minted Raccoons automatically.</p></div> : <><div className="livegrid">{state.loading ? Array.from({ length: perPage }, (_, index) => <div className="nftcard skeleton" key={index}/>) : state.cards.map(({ tokenId, uri }) => <article className="nftcard" key={tokenId}><img src={uri} alt={`StonkRaccoon #${tokenId}`}/><span>STONKRACCOON #{tokenId}</span></article>)}</div>{state.error && <p className="notice">{state.error}</p>}<div className="pagination"><button className="secondary" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>← PREVIOUS</button><span>PAGE {page + 1} / {lastPage + 1}</span><button className="secondary" disabled={page >= lastPage} onClick={() => setPage((current) => current + 1)}>NEXT →</button></div></>}</main><Footer go={go}/></>;
+}
+
 function Docs({ go }) {
   return <><Header go={go}/><main className="docs"><div className="eyebrow">StonkRaccoons / Docs</div><h1>THE FIELD GUIDE.</h1><p>5,000 fully on-chain SVG pixel raccoons on Arc: 4,980 standard, 10 Zombies and 10 Aliens.</p><h2>Mint epochs</h2><p>Ten epochs of 500 NFTs. Epoch 1 is free with one mint per wallet. Later epochs rise by 0.25 USDC, from 0.25 to 2.25 USDC.</p><h2>$RACC rewards</h2><p>Every successfully minted NFT sends <b>5,000 $RACC</b> to its minter. Total supply: 50,000,000 $RACC — 25M rewards and 25M treasury.</p><h2>Arc network</h2><p>Chain ID 5042 · native USDC · Arc Mainnet.</p></main><Footer go={go}/></>;
 }
@@ -124,9 +159,19 @@ function Footer({ go }) { return <footer className="footer"><span>© 2026 STONKR
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
-  const go = (next) => { window.history.pushState({}, "", next); setPath(next.split("#")[0]); window.scrollTo(0,0); };
+  const go = (next) => {
+    const [nextPath, hash] = next.split("#");
+    window.history.pushState({}, "", next);
+    setPath(nextPath || "/");
+
+    if (hash) {
+      requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    } else {
+      window.scrollTo(0, 0);
+    }
+  };
   useEffect(() => { const fn=()=>setPath(window.location.pathname); addEventListener("popstate",fn); return ()=>removeEventListener("popstate",fn); },[]);
-  return <div className="wrap"><WalletSync/>{path.startsWith("/mint")?<Mint go={go}/>:path.startsWith("/docs")?<Docs go={go}/>:<Home go={go}/>}</div>;
+  return <div className="wrap"><WalletSync/>{path.startsWith("/mint")?<Mint go={go}/>:path.startsWith("/docs")?<Docs go={go}/>:path.startsWith("/collection")?<Collection go={go}/>:<Home go={go}/>}</div>;
 }
 
 createRoot(document.getElementById("root")).render(<App/>);

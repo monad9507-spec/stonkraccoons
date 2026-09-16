@@ -25,5 +25,6 @@ export const NFT_ABI = [
   "function epochWalletLimit(uint256) view returns (uint256)",
   "function mintedInEpoch(uint256,address) view returns (uint256)",
   "function quote(uint256) view returns (uint256 epoch, uint256 price, uint256 total)",
-  "function mint(uint256 quantity) payable"
+  "function mint(uint256 quantity) payable",
+  "function tokenURI(uint256 tokenId) view returns (string)"
 ];
