@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" shape-rendering="crispEdges">
+  <rect width="500" height="500" fill="#0d1827"/>
+  <!-- hoodie body, cropped like the references -->
+  <path fill="#242938" d="M70 380h360v120H70z"/>
+  <rect x="98" y="380" width="46" height="120" fill="#353b4d"/>
+  <rect x="356" y="380" width="46" height="120" fill="#353b4d"/>
+  <rect x="172" y="372" width="156" height="128" fill="#eceff2"/>
+  <rect x="224" y="372" width="52" height="128" fill="#16283c"/>
+  <rect x="240" y="394" width="20" height="20" fill="#7cd5a7"/>
+  <rect x="220" y="414" width="20" height="20" fill="#7cd5a7"/>
+  <rect x="240" y="434" width="20" height="20" fill="#7cd5a7"/>
+  <!-- ears -->
+  <rect x="90" y="130" width="70" height="70" fill="#242938"/>
+  <rect x="340" y="130" width="70" height="70" fill="#242938"/>
+  <rect x="110" y="150" width="30" height="30" fill="#78808c"/>
+  <rect x="360" y="150" width="30" height="30" fill="#78808c"/>
+  <!-- large square raccoon head -->
+  <rect x="100" y="160" width="300" height="220" fill="#737a85"/>
+  <rect x="120" y="180" width="260" height="180" fill="#aeb4bb"/>
+  <!-- forehead fur -->
+  <rect x="140" y="180" width="220" height="45" fill="#6c727d"/>
+  <rect x="160" y="205" width="180" height="25" fill="#848b95"/>
+  <!-- raccoon mask -->
+  <rect x="120" y="230" width="260" height="70" fill="#20252e"/>
+  <rect x="145" y="250" width="82" height="50" fill="#303641"/>
+  <rect x="273" y="250" width="82" height="50" fill="#303641"/>
+  <!-- eyes -->
+  <rect x="165" y="250" width="42" height="42" fill="#f5f6f7"/>
+  <rect x="293" y="250" width="42" height="42" fill="#f5f6f7"/>
+  <rect x="181" y="266" width="18" height="26" fill="#141820"/>
+  <rect x="301" y="266" width="18" height="26" fill="#141820"/>
+  <!-- snout and nose -->
+  <rect x="190" y="300" width="120" height="60" fill="#d2d5d8"/>
+  <rect x="225" y="310" width="50" height="26" fill="#30343b"/>
+  <rect x="210" y="342" width="80" height="12" fill="#767c84"/>
+  <!-- baseball cap -->
+  <rect x="100" y="100" width="300" height="62" fill="#1d3c55"/>
+  <rect x="80" y="122" width="350" height="40" fill="#1d3c55"/>
+  <rect x="120" y="80" width="260" height="20" fill="#294f6f"/>
+  <rect x="226" y="104" width="48" height="28" fill="#d7bc57"/>
+  <rect x="242" y="110" width="16" height="16" fill="#edf0f3"/>
+  <!-- ear edges and neck -->
+  <rect x="100" y="180" width="20" height="100" fill="#3d4450"/>
+  <rect x="380" y="180" width="20" height="100" fill="#3d4450"/>
+  <rect x="210" y="360" width="80" height="28" fill="#717883"/>
+</svg>
