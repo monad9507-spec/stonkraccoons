@@ -15,7 +15,7 @@ export const NFT_CONTRACT = "0x6E49e473FebD8937F2387b68fC6fa39B6266f2De";
 
 // Replace these two links with your official X profile and OpenSea collection.
 export const X_URL = "https://x.com/STONKRACCOONS";
-export const OPENSEA_URL = "https://opensea.io/";
+export const OPENSEA_URL = "https://opensea.io/collection/stonkraccoonsarc";
 
 export const NFT_ABI = [
   "function totalMinted() view returns (uint256)",
