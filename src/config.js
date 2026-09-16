@@ -9,3 +9,17 @@ export const ARC = {
 };
 
 export const PROJECT_ID = "4f71172824a0ea69b0270161482356fe";
+
+// Paste only the deployed StonkRaccoons NFT contract address here.
+export const NFT_CONTRACT = "";
+
+export const NFT_ABI = [
+  "function totalMinted() view returns (uint256)",
+  "function mintOpen() view returns (bool)",
+  "function currentEpoch() view returns (uint256)",
+  "function epochRemaining() view returns (uint256)",
+  "function epochWalletLimit(uint256) view returns (uint256)",
+  "function mintedInEpoch(uint256,address) view returns (uint256)",
+  "function quote(uint256) view returns (uint256 epoch, uint256 price, uint256 total)",
+  "function mint(uint256 quantity) payable"
+];

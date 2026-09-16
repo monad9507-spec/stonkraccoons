@@ -1,11 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { useAppKit, useAppKitAccount, useAppKitNetwork, useAppKitProvider } from "@reown/appkit/react";
+import { BrowserProvider, Contract, JsonRpcProvider, formatUnits } from "ethers";
 import "./appkit";
-import { ARC } from "./config";
+import { ARC, NFT_ABI, NFT_CONTRACT } from "./config";
 import "./styles.css";
 
 const short = (address) => address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "";
+const configured = /^0x[a-fA-F0-9]{40}$/.test(NFT_CONTRACT);
+const priceLabel = (value) => value === 0n ? "FREE" : `${formatUnits(value, 6)} USDC`;
+
+function useCollection(address) {
+  const [data, setData] = useState({ total: 0n, epoch: 0n, price: 0n, mintOpen: false, remaining: 500n, limit: 1n, minted: 0n, loading: configured });
+  const refresh = async () => {
+    if (!configured) return;
+    try {
+      const read = new JsonRpcProvider(ARC.rpcUrls.default.http[0]);
+      const nft = new Contract(NFT_CONTRACT, NFT_ABI, read);
+      const [total, mintOpen, epoch, quote, remaining] = await Promise.all([nft.totalMinted(), nft.mintOpen(), nft.currentEpoch(), nft.quote(1), nft.epochRemaining()]);
+      const [limit, minted] = await Promise.all([
+        nft.epochWalletLimit(epoch),
+        address ? nft.mintedInEpoch(epoch, address) : Promise.resolve(0n)
+      ]);
+      setData({ total, mintOpen, epoch, price: quote[1], remaining, limit, minted, loading: false });
+    } catch {
+      setData((previous) => ({ ...previous, loading: false }));
+    }
+  };
+  useEffect(() => { refresh(); }, [address]);
+  return { ...data, refresh };
+}
 
 function WalletButton({ className = "mint" }) {
   const { open } = useAppKit();
@@ -36,9 +60,33 @@ function Home({ go }) {
 function Mint({ go }) {
   const { open } = useAppKit();
   const { address, isConnected } = useAppKitAccount();
-  const [qty] = useState(1);
-  const action = () => isConnected ? alert("Mint activates after the collection contract is deployed.") : open({ view: "Connect" });
-  return <><Header go={go}/><main className="mintscreen"><section className="art"><img src="/assets/raccoon-headset.svg" alt="StonkRaccoons"/></section><section className="panel"><div className="eyebrow">Mint terminal</div><h1>CLAIM YOUR<br/>RACCOON.</h1><div className="status"><i/> {isConnected ? `CONNECTED · ${short(address)}` : "EPOCH 1 · FREE MINT"}</div><div className="box"><div className="topline"><span>SUPPLY</span><b>0 / 5,000 MINTED</b></div><div className="quantity"><span>QUANTITY</span><b>{qty}</b></div><div className="total"><span>PRICE <b>FREE</b></span><span>WALLET CAP, THIS EPOCH <b>1</b></span></div><div className="reward"><span>YOU RECEIVE</span><b>5,000 $RACC</b></div><button className="mainbtn" onClick={action}>{isConnected ? "MINT A RACCOON" : "CONNECT WALLET"}</button></div><div className="epochline">{Array.from({length:10},(_,i)=><i key={i} className={i===0?"active":""}/>)}</div><p className="notice">Epoch 1: 500 free mints · one raccoon per wallet. Your mint capacity resets in the next epoch.</p></section></main></>;
+  const { walletProvider } = useAppKitProvider("eip155");
+  const [qty, setQty] = useState(1);
+  const [status, setStatus] = useState("");
+  const collection = useCollection(address);
+  const walletRemaining = collection.limit > collection.minted ? collection.limit - collection.minted : 0n;
+  const maxQty = Number(collection.remaining < walletRemaining ? collection.remaining : walletRemaining);
+  const action = async () => {
+    if (!isConnected) return open({ view: "Connect" });
+    if (!configured) return setStatus("Paste the NFT_CONTRACT address in src/config.js first.");
+    if (!collection.mintOpen) return setStatus("Mint is not open yet.");
+    if (!walletProvider) return open({ view: "Connect" });
+    try {
+      setStatus("Confirm the mint in your wallet…");
+      const signer = await new BrowserProvider(walletProvider).getSigner();
+      const nft = new Contract(NFT_CONTRACT, NFT_ABI, signer);
+      const quote = await nft.quote(qty);
+      const tx = await nft.mint(qty, { value: quote[2] });
+      setStatus("Transaction sent. Waiting for confirmation…");
+      await tx.wait();
+      setStatus("Mint complete. Your $RACC reward was sent.");
+      await collection.refresh();
+    } catch (error) {
+      setStatus(error?.shortMessage || error?.message || "Mint cancelled.");
+    }
+  };
+  const epochTitle = configured ? `EPOCH ${Number(collection.epoch) + 1} · ${priceLabel(collection.price)}` : "PASTE CONTRACT ADDRESS";
+  return <><Header go={go}/><main className="mintscreen"><section className="art"><img src="/assets/raccoon-headset.svg" alt="StonkRaccoons"/></section><section className="panel"><div className="eyebrow">Mint terminal</div><h1>CLAIM YOUR<br/>RACCOON.</h1><div className="status"><i/> {isConnected ? `CONNECTED · ${short(address)} · ${epochTitle}` : epochTitle}</div><div className="box"><div className="topline"><span>SUPPLY</span><b>{collection.loading ? "LOADING…" : `${collection.total} / 5,000 MINTED`}</b></div><div className="quantity"><span>QUANTITY</span><div className="qty"><button disabled={qty <= 1} onClick={() => setQty(Math.max(1, qty - 1))}>−</button><b>{qty}</b><button disabled={maxQty < 1 || qty >= maxQty} onClick={() => setQty(Math.min(Math.max(1, maxQty), qty + 1))}>+</button></div></div><div className="total"><span>PRICE <b>{priceLabel(collection.price * BigInt(qty))}</b></span><span>YOUR WALLET CAP LEFT <b>{walletRemaining.toString()}</b></span></div><div className="reward"><span>YOU RECEIVE</span><b>{(qty * 5000).toLocaleString()} $RACC</b></div><button className="mainbtn" onClick={action}>{isConnected ? "MINT A RACCOON" : "CONNECT WALLET"}</button>{status && <p className="notice">{status}</p>}</div><div className="epochline">{Array.from({length:10},(_,i)=><i key={i} className={Number(collection.epoch) === i ? "active" : ""}/>)}</div><p className="notice">The site reads the live epoch, price, supply and wallet cap from the contract.</p></section></main></>;
 }
 
 function Docs({ go }) {
