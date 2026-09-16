@@ -11,10 +11,10 @@ export const ARC = {
 export const PROJECT_ID = "4f71172824a0ea69b0270161482356fe";
 
 // Paste only the deployed StonkRaccoons NFT contract address here.
-export const NFT_CONTRACT = "";
+export const NFT_CONTRACT = "0x6E49e473FebD8937F2387b68fC6fa39B6266f2De";
 
 // Replace these two links with your official X profile and OpenSea collection.
-export const X_URL = "https://x.com/";
+export const X_URL = "https://x.com/STONKRACCOONS";
 export const OPENSEA_URL = "https://opensea.io/";
 
 export const NFT_ABI = [
