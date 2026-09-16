@@ -3,7 +3,7 @@ export const ARC = {
   caipNetworkId: "eip155:5042",
   chainNamespace: "eip155",
   name: "Arc",
-  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
   rpcUrls: { default: { http: ["https://rpc.blockdaemon.mainnet.arc.io"] } },
   blockExplorers: { default: { name: "Arc Explorer", url: "https://explorer.arc.io" } }
 };
@@ -11,11 +11,11 @@ export const ARC = {
 export const PROJECT_ID = "4f71172824a0ea69b0270161482356fe";
 
 // Paste only the deployed StonkRaccoons NFT contract address here.
-export const NFT_CONTRACT = "0x36Eb546E8f0FB4F638CF6d20418F6a96fE7FE71d";
+export const NFT_CONTRACT = "";
 
 // Replace these two links with your official X profile and OpenSea collection.
-export const X_URL = "https://x.com/STONKRACCOONS";
-export const OPENSEA_URL = "https://opensea.io/collection/stonkraccoonsarc";
+export const X_URL = "https://x.com/";
+export const OPENSEA_URL = "https://opensea.io/";
 
 export const NFT_ABI = [
   "function totalMinted() view returns (uint256)",

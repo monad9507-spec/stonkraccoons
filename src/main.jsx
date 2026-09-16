@@ -8,7 +8,7 @@ import "./styles.css";
 
 const short = (address) => address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "";
 const configured = /^0x[a-fA-F0-9]{40}$/.test(NFT_CONTRACT);
-const priceLabel = (value) => value === 0n ? "FREE" : `${formatUnits(value, 6)} USDC`;
+const priceLabel = (value) => value === 0n ? "FREE" : `${formatUnits(value, 18)} USDC`;
 
 function useCollection(address) {
   const [data, setData] = useState({ total: 0n, epoch: 0n, price: 0n, mintOpen: false, remaining: 500n, limit: 1n, minted: 0n, loading: configured });
